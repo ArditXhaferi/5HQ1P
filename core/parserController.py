@@ -104,6 +104,31 @@ class Parser:
 	def term(self):
 		return self.bin_op(self.factor, (const.tokens.SS_MUL, const.tokens.SS_DIV))
 
+	def arith_expr(self):
+		return self.bin_op(self.term, (const.tokens.SS_PLUS, const.tokens.SS_MINUS))
+
+	def comp_expr(self):
+		res = ParseResult()
+
+		if self.current_tok.matches(const.tokens.SS_KEYWORD, const.tokens.SS_NOT):
+			op_tok = self.current_tok
+			res.register_advancement()
+			self.advance()
+
+			node = res.register(self.comp_expr())
+			if res.error: return res
+			return res.success(UnaryOpNode(op_tok, node))
+		
+		node = res.register(self.bin_op(self.arith_expr, (const.tokens.SS_EE, const.tokens.SS_NE, const.tokens.SS_LT, const.tokens.SS_GT, const.tokens.SS_LTE, const.tokens.SS_GTE)))
+		
+		if res.error:
+			return res.failure(InvalidSyntaxError(
+				self.current_tok.pos_start, self.current_tok.pos_end,
+				"Expected int, float, identifier, '+', '-', '(' or 'NOT'"
+			))
+
+		return res.success(node)
+
 	def expr(self):
 		res = ParseResult()
 
@@ -133,7 +158,7 @@ class Parser:
 			if res.error: return res
 			return res.success(VarAssignNode(var_name, expr))
 
-		node = res.register(self.bin_op(self.term, (const.tokens.SS_PLUS, const.tokens.SS_MINUS)))
+		node = res.register(self.bin_op(self.comp_expr, ((const.tokens.SS_KEYWORD, const.tokens.SS_AND), (const.tokens.SS_KEYWORD, const.tokens.SS_OR))))
 
 		if res.error:
 			return res.failure(InvalidSyntaxError(
@@ -152,7 +177,7 @@ class Parser:
 		left = res.register(func_a())
 		if res.error: return res
 
-		while self.current_tok.type in ops:
+		while self.current_tok.type in ops or (self.current_tok.type, self.current_tok.value) in ops:
 			op_tok = self.current_tok
 			res.register_advancement()
 			self.advance()

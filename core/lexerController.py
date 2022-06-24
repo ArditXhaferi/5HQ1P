@@ -3,6 +3,7 @@ import const.tokens
 from .positionController import Position 
 from .tokenController import Token
 from .illegalCharController import IllegalCharError
+from .illegalCharController import ExpectedCharError
 
 class Lexer:
     def __init__(self, fn, text):
@@ -47,9 +48,16 @@ class Lexer:
             elif self.current_char == ')':
                 tokens.append(Token(const.tokens.SS_RPAREN, pos_start=self.pos))
                 self.advance()
+            elif self.current_char == '!':
+                token, error = self.make_not_equals()
+                if error: return [], error
+                tokens.append(token)
             elif self.current_char == '=':
-                tokens.append(Token(const.tokens.SS_ASSIGNOR, pos_start=self.pos))
-                self.advance()
+                tokens.append(self.make_equals())
+            elif self.current_char == '<':
+                tokens.append(self.make_less_than())
+            elif self.current_char == '>':
+                tokens.append(self.make_greater_than())
             else:
                 pos_start = self.pos.copy()
                 char = self.current_char
@@ -88,3 +96,58 @@ class Lexer:
 
         tok_type = const.tokens.SS_KEYWORD if id_str in const.tokens.KEYWORDS else const.tokens.SS_IDENTIFIER
         return Token(tok_type, id_str, pos_start, self.pos)
+
+    def make_identifier(self):
+        id_str = ''
+        pos_start = self.pos.copy()
+
+        while self.current_char != None and self.current_char in const.constants.LETTERS_DIGITS + '_':
+            id_str += self.current_char
+            self.advance()
+
+        tok_type = const.tokens.SS_KEYWORD if id_str in const.tokens.KEYWORDS else const.tokens.SS_IDENTIFIER
+        return Token(tok_type, id_str, pos_start, self.pos)
+
+    def make_not_equals(self):
+        pos_start = self.pos.copy()
+        self.advance()
+
+        if self.current_char == '=':
+            self.advance()
+            return Token(const.tokens.SS_NE, pos_start=pos_start, pos_end=self.pos), None
+
+        self.advance()
+        return None, ExpectedCharError(pos_start, self.pos, "'=' (after '!')")
+
+    def make_equals(self):
+        tok_type = const.tokens.SS_ASSIGNOR
+        pos_start = self.pos.copy()
+        self.advance()
+
+        if self.current_char == '=':
+            self.advance()
+            tok_type = const.tokens.SS_EE
+
+        return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
+
+    def make_less_than(self):
+        tok_type = const.tokens.SS_LT
+        pos_start = self.pos.copy()
+        self.advance()
+
+        if self.current_char == '=':
+            self.advance()
+            tok_type = const.tokens.SS_LTE
+
+        return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
+
+    def make_greater_than(self):
+        tok_type = const.tokens.SS_GT
+        pos_start = self.pos.copy()
+        self.advance()
+
+        if self.current_char == '=':
+            self.advance()
+            tok_type = const.tokens.SS_GTE
+
+        return Token(tok_type, pos_start=pos_start, pos_end=self.pos)

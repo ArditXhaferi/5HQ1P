@@ -60,6 +60,22 @@ class Interpreter:
 			result, error = left.dived_by(right)
 		elif node.op_tok.type == const.tokens.SS_POW:
 			result, error = left.powed_by(right)
+		elif node.op_tok.type == const.tokens.SS_EE:
+			result, error = left.get_comparison_eq(right)
+		elif node.op_tok.type == const.tokens.SS_NE:
+			result, error = left.get_comparison_ne(right)
+		elif node.op_tok.type == const.tokens.SS_LT:
+			result, error = left.get_comparison_lt(right)
+		elif node.op_tok.type == const.tokens.SS_GT:
+			result, error = left.get_comparison_gt(right)
+		elif node.op_tok.type == const.tokens.SS_LTE:
+			result, error = left.get_comparison_lte(right)
+		elif node.op_tok.type == const.tokens.SS_GTE:
+			result, error = left.get_comparison_gte(right)
+		elif node.op_tok.matches(const.tokens.SS_KEYWORD, const.tokens.SS_AND):
+			result, error = left.anded_by(right)
+		elif node.op_tok.matches(const.tokens.SS_KEYWORD, const.tokens.SS_OR):
+			result, error = left.ored_by(right)
 
 		if error:
 			return res.failure(error)
@@ -75,6 +91,8 @@ class Interpreter:
 
 		if node.op_tok.type == const.tokens.SS_MINUS:
 			number, error = number.multed_by(Number(-1))
+		elif node.op_tok.matches(const.tokens.SS_KEYWORD, const.tokens.SS_NOT):
+			number, error = number.notted()
 
 		if error:
 			return res.failure(error)
