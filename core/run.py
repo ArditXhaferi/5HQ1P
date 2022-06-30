@@ -4,11 +4,13 @@ from core.lexerController import Lexer
 from core.contextController import Context
 from core.symbolTable import SymbolTable
 from core.numberController import Number
+import const.constants
 
 import pprint
 
 global_symbol_table = SymbolTable()
-# global_symbol_table.set("null", Number(0))
+global_symbol_table.set(const.constants.TRUE, Number(1))
+global_symbol_table.set(const.constants.FALSE, Number(0))
 
 def run(fn, text):
 
