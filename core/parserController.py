@@ -5,6 +5,7 @@ from nodes.unaryOpNode import UnaryOpNode
 from core.illegalCharController import InvalidSyntaxError
 from nodes.varAcessNode import VarAccessNode
 from nodes.varAssignNode import VarAssignNode
+from nodes.ifNode import IfNode
 
 class ParseResult:
 	def __init__(self):
@@ -51,6 +52,65 @@ class Parser:
 			))
 		return res
 
+	def if_expr(self):
+		res = ParseResult()
+		cases = []
+		else_case = None
+
+		if not self.current_tok.matches(const.tokens.SS_KEYWORD, const.tokens.SS_IF):
+			return res.failure(InvalidSyntaxError(
+				self.current_tok.pos_start, self.current_tok.pos_end,
+				f"Pritet '{const.tokens.SS_IF}'"
+			))
+
+		res.register_advancement()
+		self.advance()
+
+		condition = res.register(self.expr())
+		if res.error: return res
+
+		if not self.current_tok.matches(const.tokens.SS_KEYWORD, const.tokens.SS_THEN):
+			return res.failure(InvalidSyntaxError(
+				self.current_tok.pos_start, self.current_tok.pos_end,
+				f"Pritet '{const.tokens.SS_THEN}'"
+			))
+
+		res.register_advancement()
+		self.advance()
+
+		expr = res.register(self.expr())
+		if res.error: return res
+		cases.append((condition, expr))
+
+		while self.current_tok.matches(const.tokens.SS_KEYWORD, const.tokens.SS_ELIF):
+			res.register_advancement()
+			self.advance()
+
+			condition = res.register(self.expr())
+			if res.error: return res
+
+			if not self.current_tok.matches(const.tokens.SS_KEYWORD, const.tokens.SS_THEN):
+				return res.failure(InvalidSyntaxError(
+					self.current_tok.pos_start, self.current_tok.pos_end,
+					f"Pritet '{const.tokens.SS_THEN}'"
+				))
+
+			res.register_advancement()
+			self.advance()
+
+			expr = res.register(self.expr())
+			if res.error: return res
+			cases.append((condition, expr))
+
+		if self.current_tok.matches(const.tokens.SS_KEYWORD, const.tokens.SS_ELSE):
+			res.register_advancement()
+			self.advance()
+
+			else_case = res.register(self.expr())
+			if res.error: return res
+
+		return res.success(IfNode(cases, else_case))
+
 	def atom(self):
 		res = ParseResult()
 		tok = self.current_tok
@@ -79,6 +139,11 @@ class Parser:
 					self.current_tok.pos_start, self.current_tok.pos_end,
 					"Pritet ')'"
 				))
+
+		elif tok.matches(const.tokens.SS_KEYWORD, const.tokens.SS_IF):
+			if_expr = res.register(self.if_expr())
+			if res.error: return res
+			return res.success(if_expr)
 
 		return res.failure(InvalidSyntaxError(
 			tok.pos_start, tok.pos_end,
@@ -124,7 +189,7 @@ class Parser:
 		if res.error:
 			return res.failure(InvalidSyntaxError(
 				self.current_tok.pos_start, self.current_tok.pos_end,
-				"Expected int, float, identifier, '+', '-', '(' or 'NOT'"
+				"Pritet int, float, identifier, '+', '-', '(' or 'NOT'"
 			))
 
 		return res.success(node)

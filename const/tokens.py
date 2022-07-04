@@ -15,6 +15,13 @@ SS_VAR        = 'var'
 SS_AND        = 'edhe'
 SS_OR         = 'ose'
 SS_NOT        = 'jo'
+
+#IF STATEMENT
+SS_IF         = 'nese'
+SS_THEN       = 'tani'
+SS_ELIF       = 'tjeter'
+SS_ELSE       = 'perndryshe'
+
 SS_EE		  = 'EE'
 SS_NE		  = 'NE'
 SS_LT		  = 'LT'
@@ -26,5 +33,9 @@ KEYWORDS = [
     SS_VAR,
     SS_AND,
     SS_OR,
-    SS_NOT
+    SS_NOT,
+    SS_IF,
+    SS_THEN,
+    SS_ELIF,
+    SS_ELSE
 ]
