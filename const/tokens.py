@@ -22,6 +22,12 @@ SS_THEN       = 'tani'
 SS_ELIF       = 'tjeter'
 SS_ELSE       = 'perndryshe'
 
+#LOOPS
+SS_FOR = "per"
+SS_TO = "deri"
+SS_STEP = "hapa"
+SS_WHILE = "derisa"
+
 SS_EE		  = 'EE'
 SS_NE		  = 'NE'
 SS_LT		  = 'LT'
@@ -37,5 +43,9 @@ KEYWORDS = [
     SS_IF,
     SS_THEN,
     SS_ELIF,
-    SS_ELSE
+    SS_ELSE,
+    SS_FOR,
+    SS_TO,
+    SS_STEP,
+    SS_WHILE 
 ]
