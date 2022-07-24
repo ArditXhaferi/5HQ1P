@@ -10,6 +10,7 @@ from nodes.forNode import ForNode
 from nodes.whileNode import WhileNode
 from nodes.funcDefNode import FuncDefNode
 from nodes.callNode import CallNode
+from nodes.stringNode import StringNode
 
 class ParseResult:
 	def __init__(self):
@@ -345,6 +346,11 @@ class Parser:
 			res.register_advancement()
 			self.advance()
 			return res.success(NumberNode(tok))
+
+		elif tok.type == const.tokens.SS_STRING:
+			res.register_advancement()
+			self.advance()
+			return res.success(StringNode(tok))
 
 		elif tok.type == const.tokens.SS_IDENTIFIER:
 			res.register_advancement()

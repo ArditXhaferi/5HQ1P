@@ -43,6 +43,9 @@ SS_COMMA = 'COMMA'
 SS_ARROW = 'ARROW'
 SS_FUN = 'funksion'
 
+#Strings
+SS_STRING = 'STRING'
+
 KEYWORDS = [
     SS_VAR,
     SS_AND,

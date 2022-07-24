@@ -6,6 +6,7 @@ from core.illegalCharController import RTError
 from core.RunTimeResultController import RTResult
 from core.contextController import Context
 from core.symbolTable import SymbolTable
+from core.stringController import String
 import const.tokens
 
 class Interpreter:
@@ -17,11 +18,15 @@ class Interpreter:
 	def no_visit_method(self, node, context):
 		raise Exception(f'No visit_{type(node).__name__} method defined')
 
-	###################################
 
 	def visit_NumberNode(self, node, context):
 		return RTResult().success(
 			Number(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
+		)
+
+	def visit_StringNode(self, node, context):
+		return RTResult().success(
+			String(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
 		)
 
 	def visit_VarAccessNode(self, node, context):
