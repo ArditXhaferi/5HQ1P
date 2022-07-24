@@ -11,6 +11,7 @@ from nodes.whileNode import WhileNode
 from nodes.funcDefNode import FuncDefNode
 from nodes.callNode import CallNode
 from nodes.stringNode import StringNode
+from nodes.listNode import ListNode
 
 class ParseResult:
 	def __init__(self):
@@ -56,6 +57,53 @@ class Parser:
 				"Pritet '+', '-', '*', '/' ose '^'"
 			))
 		return res
+
+	def list_expr(self):
+		res = ParseResult()
+		element_nodes = []
+		pos_start = self.current_tok.pos_start.copy()
+
+		if self.current_tok.type != const.tokens.SS_LSQUARE:
+			return res.failure(InvalidSyntaxError(
+				self.current_tok.pos_start, self.current_tok.pos_end,
+				f"Pritet '['"
+			))
+
+		res.register_advancement()
+		self.advance()
+
+		if self.current_tok.type == const.tokens.SS_RSQUARE:
+			res.register_advancement()
+			self.advance()
+		else:
+			element_nodes.append(res.register(self.expr()))
+			if res.error:
+				return res.failure(InvalidSyntaxError(
+					self.current_tok.pos_start, self.current_tok.pos_end,
+					f"Pritet ']', '{const.tokens.SS_VAR}', '{const.tokens.SS_IF}', '{const.tokens.SS_FOR}', '{const.tokens.SS_WHILE}', '{const.tokens.SS_FUN}', {const.tokens.SSS_INT}, {const.tokens.SSS_FLOAT}, identifier, '+', '-', '(', '[' ose '{const.tokens.SS_NOT}'"
+				))
+
+			while self.current_tok.type == const.tokens.SS_COMMA:
+				res.register_advancement()
+				self.advance()
+
+				element_nodes.append(res.register(self.expr()))
+				if res.error: return res
+			
+			if self.current_tok.type != const.tokens.SS_RSQUARE:
+				return res.failure(InvalidSyntaxError(
+					self.current_tok.pos_start, self.current_tok.pos_end,
+					f"Pritet ',' or ']'"
+				))
+
+			res.register_advancement()
+			self.advance()
+
+		return res.success(ListNode(
+			element_nodes,
+			pos_start,
+			self.current_tok.pos_end.copy()
+		))
 
 	#Expressions
 	def if_expr(self):
@@ -371,6 +419,11 @@ class Parser:
 					self.current_tok.pos_start, self.current_tok.pos_end,
 					"Pritet ')'"
 				))
+
+		elif tok.type == const.tokens.SS_LSQUARE:
+			list_expr = res.register(self.list_expr())
+			if res.error: return res
+			return res.success(list_expr)
 
 		elif tok.matches(const.tokens.SS_KEYWORD, const.tokens.SS_IF):
 			if_expr = res.register(self.if_expr())

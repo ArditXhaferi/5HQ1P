@@ -7,6 +7,7 @@ from core.RunTimeResultController import RTResult
 from core.contextController import Context
 from core.symbolTable import SymbolTable
 from core.stringController import String
+from core.listController import List
 import const.tokens
 
 class Interpreter:
@@ -130,6 +131,7 @@ class Interpreter:
 
 	def visit_ForNode(self, node, context):
 		res = RTResult()
+		elements = []
 
 		start_value = res.register(self.visit(node.start_value_node, context))
 		if res.error: return res
@@ -154,13 +156,16 @@ class Interpreter:
 			context.symbol_table.set(node.var_name_tok.value, Number(i))
 			i += step_value.value
 
-			res.register(self.visit(node.body_node, context))
+			elements.append(res.register(self.visit(node.body_node, context)))
 			if res.error: return res
 
-		return res.success(None)
+		return res.success(
+			List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+		)
 
 	def visit_WhileNode(self, node, context):
 		res = RTResult()
+		elements = []
 
 		while True:
 			condition = res.register(self.visit(node.condition_node, context))
@@ -168,10 +173,12 @@ class Interpreter:
 
 			if not condition.is_true(): break
 
-			res.register(self.visit(node.body_node, context))
+			elements.append(res.register(self.visit(node.body_node, context)))
 			if res.error: return res
 
-		return res.success(None)
+		return res.success(
+			List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+		)
 
 	def visit_FuncDefNode(self, node, context):
 		res = RTResult()
@@ -201,6 +208,18 @@ class Interpreter:
 		return_value = res.register(value_to_call.execute(args))
 		if res.error: return res
 		return res.success(return_value)
+
+	def visit_ListNode(self, node, context):
+		res = RTResult()
+		elements = []
+
+		for element_node in node.element_nodes:
+			elements.append(res.register(self.visit(element_node, context)))
+			if res.error: return res
+
+		return res.success(
+			List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+		)
 
 class Function(Value):
 	def __init__(self, name, body_node, arg_names):

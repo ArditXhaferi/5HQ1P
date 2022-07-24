@@ -46,6 +46,10 @@ SS_FUN = 'funksion'
 #Strings
 SS_STRING = 'STRING'
 
+#Array
+SS_LSQUARE = "LSQUARE"
+SS_RSQUARE = "RSQUARE"
+
 KEYWORDS = [
     SS_VAR,
     SS_AND,
