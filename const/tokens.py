@@ -16,16 +16,19 @@ SS_AND        = 'edhe'
 SS_OR         = 'ose'
 SS_NOT        = 'jo'
 
-#IF STATEMENT
+SSS_INT = "num"
+SSS_FLOAT = "dec"
+
+#If statement
 SS_IF         = 'nese'
 SS_THEN       = 'tani'
 SS_ELIF       = 'tjeter'
 SS_ELSE       = 'perndryshe'
 
-#LOOPS
+#Loops
 SS_FOR = "per"
 SS_TO = "deri"
-SS_STEP = "hapa"
+SS_STEP = "hap"
 SS_WHILE = "derisa"
 
 SS_EE		  = 'EE'
@@ -34,6 +37,11 @@ SS_LT		  = 'LT'
 SS_GT		  = 'GT'
 SS_LTE		  = 'LTE'
 SS_GTE		  = 'GTE'
+
+#Functions
+SS_COMMA = 'COMMA'
+SS_ARROW = 'ARROW'
+SS_FUN = 'funksion'
 
 KEYWORDS = [
     SS_VAR,
@@ -47,5 +55,6 @@ KEYWORDS = [
     SS_FOR,
     SS_TO,
     SS_STEP,
-    SS_WHILE 
+    SS_WHILE,
+    SS_FUN
 ]

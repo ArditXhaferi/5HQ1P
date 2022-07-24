@@ -1,6 +1,11 @@
 from core.numberController import Number
 from core.RunTimeResultController import RTResult
 from core.illegalCharController import RTError
+from core.valueController import Value
+from core.illegalCharController import RTError
+from core.RunTimeResultController import RTResult
+from core.contextController import Context
+from core.symbolTable import SymbolTable
 import const.tokens
 
 class Interpreter:
@@ -162,3 +167,78 @@ class Interpreter:
 			if res.error: return res
 
 		return res.success(None)
+
+	def visit_FuncDefNode(self, node, context):
+		res = RTResult()
+
+		func_name = node.var_name_tok.value if node.var_name_tok else None
+		body_node = node.body_node
+		arg_names = [arg_name.value for arg_name in node.arg_name_toks]
+		func_value = Function(func_name, body_node, arg_names).set_context(context).set_pos(node.pos_start, node.pos_end)
+		
+		if node.var_name_tok:
+			context.symbol_table.set(func_name, func_value)
+
+		return res.success(func_value)
+
+	def visit_CallNode(self, node, context):
+		res = RTResult()
+		args = []
+
+		value_to_call = res.register(self.visit(node.node_to_call, context))
+		if res.error: return res
+		value_to_call = value_to_call.copy().set_pos(node.pos_start, node.pos_end)
+
+		for arg_node in node.arg_nodes:
+			args.append(res.register(self.visit(arg_node, context)))
+			if res.error: return res
+
+		return_value = res.register(value_to_call.execute(args))
+		if res.error: return res
+		return res.success(return_value)
+
+class Function(Value):
+	def __init__(self, name, body_node, arg_names):
+		super().__init__()
+		self.name = name or "<panjohur>"
+		self.body_node = body_node
+		self.arg_names = arg_names
+
+	def execute(self, args):
+		res = RTResult()
+		interpreter = Interpreter()
+		new_context = Context(self.name, self.context, self.pos_start)
+		new_context.symbol_table = SymbolTable(new_context.parent.symbol_table)
+
+		if len(args) > len(self.arg_names):
+			return res.failure(RTError(
+				self.pos_start, self.pos_end,
+				f"shum parametra bre n'{self.name}'",
+				self.context
+			))
+		
+		if len(args) < len(self.arg_names):
+			return res.failure(RTError(
+				self.pos_start, self.pos_end,
+				f"ku i ki {len(self.arg_names) - len(args)} parametra n'{self.name}'",
+				self.context
+			))
+
+		for i in range(len(args)):
+			arg_name = self.arg_names[i]
+			arg_value = args[i]
+			arg_value.set_context(new_context)
+			new_context.symbol_table.set(arg_name, arg_value)
+
+		value = res.register(interpreter.visit(self.body_node, new_context))
+		if res.error: return res
+		return res.success(value)
+
+	def copy(self):
+		copy = Function(self.name, self.body_node, self.arg_names)
+		copy.set_context(self.context)
+		copy.set_pos(self.pos_start, self.pos_end)
+		return copy
+
+	def __repr__(self):
+		return f"<funksioni {self.name}>"		
