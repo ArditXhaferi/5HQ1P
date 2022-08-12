@@ -1,5 +1,6 @@
 from core.illegalCharController import RTError
 from core.valueController import Value
+import math
 
 class Number(Value):
 	def __init__(self, value):
@@ -105,3 +106,9 @@ class Number(Value):
 	
 	def __repr__(self):
 		return str(self.value)
+
+
+Number.null = Number(0)
+Number.false = Number(0)
+Number.true = Number(1)
+Number.math_PI = Number(math.pi)

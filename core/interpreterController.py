@@ -8,6 +8,7 @@ from core.contextController import Context
 from core.symbolTable import SymbolTable
 from core.stringController import String
 from core.listController import List
+from core.baseFunctionController import BaseFunction
 import const.tokens
 
 class Interpreter:
@@ -42,7 +43,7 @@ class Interpreter:
 				context
 			))
 
-		value = value.copy().set_pos(node.pos_start, node.pos_end)
+		value = value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
 		return res.success(value)
 
 	def visit_VarAssignNode(self, node, context):
@@ -207,6 +208,7 @@ class Interpreter:
 
 		return_value = res.register(value_to_call.execute(args))
 		if res.error: return res
+		return_value = return_value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
 		return res.success(return_value)
 
 	def visit_ListNode(self, node, context):
@@ -221,48 +223,188 @@ class Interpreter:
 			List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
 		)
 
-class Function(Value):
-	def __init__(self, name, body_node, arg_names):
-		super().__init__()
-		self.name = name or "<panjohur>"
-		self.body_node = body_node
-		self.arg_names = arg_names
+class Function(BaseFunction):
+  def __init__(self, name, body_node, arg_names):
+    super().__init__(name)
+    self.body_node = body_node
+    self.arg_names = arg_names
 
-	def execute(self, args):
-		res = RTResult()
-		interpreter = Interpreter()
-		new_context = Context(self.name, self.context, self.pos_start)
-		new_context.symbol_table = SymbolTable(new_context.parent.symbol_table)
+  def execute(self, args):
+    res = RTResult()
+    interpreter = Interpreter()
+    exec_ctx = self.generate_new_context()
 
-		if len(args) > len(self.arg_names):
-			return res.failure(RTError(
-				self.pos_start, self.pos_end,
-				f"shum parametra bre n'{self.name}'",
-				self.context
-			))
-		
-		if len(args) < len(self.arg_names):
-			return res.failure(RTError(
-				self.pos_start, self.pos_end,
-				f"ku i ki {len(self.arg_names) - len(args)} parametra n'{self.name}'",
-				self.context
-			))
+    res.register(self.check_and_populate_args(self.arg_names, args, exec_ctx))
+    if res.error: return res
 
-		for i in range(len(args)):
-			arg_name = self.arg_names[i]
-			arg_value = args[i]
-			arg_value.set_context(new_context)
-			new_context.symbol_table.set(arg_name, arg_value)
+    value = res.register(interpreter.visit(self.body_node, exec_ctx))
+    if res.error: return res
+    return res.success(value)
 
-		value = res.register(interpreter.visit(self.body_node, new_context))
-		if res.error: return res
-		return res.success(value)
+  def copy(self):
+    copy = Function(self.name, self.body_node, self.arg_names)
+    copy.set_context(self.context)
+    copy.set_pos(self.pos_start, self.pos_end)
+    return copy
 
-	def copy(self):
-		copy = Function(self.name, self.body_node, self.arg_names)
-		copy.set_context(self.context)
-		copy.set_pos(self.pos_start, self.pos_end)
-		return copy
+  def __repr__(self):
+    return f"<funksioni {self.name}>"
 
-	def __repr__(self):
-		return f"<funksioni {self.name}>"		
+
+
+class BuiltInFunction(BaseFunction):
+  def __init__(self, name):
+    super().__init__(name)
+
+  def execute(self, args):
+    res = RTResult()
+    exec_ctx = self.generate_new_context()
+
+    method_name = f'execute_{self.name}'
+    method = getattr(self, method_name, self.no_visit_method)
+
+    res.register(self.check_and_populate_args(method.arg_names, args, exec_ctx))
+    if res.error: return res
+
+    return_value = res.register(method(exec_ctx))
+    if res.error: return res
+    return res.success(return_value)
+  
+  def no_visit_method(self, node, context):
+    raise Exception(f'No execute_{self.name} method defined')
+
+  def copy(self):
+    copy = BuiltInFunction(self.name)
+    copy.set_context(self.context)
+    copy.set_pos(self.pos_start, self.pos_end)
+    return copy
+
+  def __repr__(self):
+    return f"<funksioni i integruar {self.name}>"
+
+  #####################################
+
+  def execute_printo(self, exec_ctx):
+    print(str(exec_ctx.symbol_table.get('value')))
+    return RTResult().success(Number.null)
+  execute_printo.arg_names = ['value']
+  
+  def execute_shtyp(self, exec_ctx):
+    text = input()
+    return RTResult().success(String(text))
+  execute_shtyp.arg_names = []
+
+  def execute_shtyp_num(self, exec_ctx):
+    while True:
+      text = input()
+      try:
+        number = int(text)
+        break
+      except ValueError:
+        print(f"'{text}' duhet te jete nje numer.")
+    return RTResult().success(Number(number))
+  execute_shtyp_num.arg_names = []
+
+#   def execute_clear(self, exec_ctx):
+#     os.system('cls' if os.name == 'nt' else 'cls') 
+#     return RTResult().success(Number.null)
+#   execute_clear.arg_names = []
+
+  def execute_eshte_num(self, exec_ctx):
+    is_number = isinstance(exec_ctx.symbol_table.get("value"), Number)
+    return RTResult().success(Number.true if is_number else Number.false)
+  execute_eshte_num.arg_names = ["value"]
+
+  def execute_eshte_tekst(self, exec_ctx):
+    is_number = isinstance(exec_ctx.symbol_table.get("value"), String)
+    return RTResult().success(Number.true if is_number else Number.false)
+  execute_eshte_tekst.arg_names = ["value"]
+
+  def execute_eshte_list(self, exec_ctx):
+    is_number = isinstance(exec_ctx.symbol_table.get("value"), List)
+    return RTResult().success(Number.true if is_number else Number.false)
+  execute_eshte_list.arg_names = ["value"]
+
+  def execute_eshte_fun(self, exec_ctx):
+    is_number = isinstance(exec_ctx.symbol_table.get("value"), BaseFunction)
+    return RTResult().success(Number.true if is_number else Number.false)
+  execute_eshte_fun.arg_names = ["value"]
+
+  def execute_shto(self, exec_ctx):
+    list_ = exec_ctx.symbol_table.get("list")
+    value = exec_ctx.symbol_table.get("value")
+
+    if not isinstance(list_, List):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Argumenti i pare duhet te jete lista",
+        exec_ctx
+      ))
+
+    list_.elements.append(value)
+    return RTResult().success(Number.null)
+  execute_shto.arg_names = ["list", "value"]
+
+  def execute_fshij(self, exec_ctx):
+    list_ = exec_ctx.symbol_table.get("list")
+    index = exec_ctx.symbol_table.get("index")
+
+    if not isinstance(list_, List):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Argumenti i pare duhet te jete lista",
+        exec_ctx
+      ))
+
+    if not isinstance(index, Number):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Argumenti i dyte duhet te jete numri",
+        exec_ctx
+      ))
+
+    try:
+      element = list_.elements.pop(index.value)
+    except:
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        'Elementi në kete indeks nuk mund te hiqej nga lista sepse indeksi eshte jashte kufijve',
+        exec_ctx
+      ))
+    return RTResult().success(element)
+  execute_fshij.arg_names = ["list", "index"]
+
+  def execute_zgjat(self, exec_ctx):
+    listA = exec_ctx.symbol_table.get("listA")
+    listB = exec_ctx.symbol_table.get("listB")
+
+    if not isinstance(listA, List):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Argumenti i pare duhet te jete list",
+        exec_ctx
+      ))
+
+    if not isinstance(listB, List):
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        "Argumenti i dyte duhet te jete lista",
+        exec_ctx
+      ))
+
+    listA.elements.extend(listB.elements)
+    return RTResult().success(Number.null)
+  execute_zgjat.arg_names = ["listA", "listB"]
+
+BuiltInFunction.printo      = BuiltInFunction("printo")
+BuiltInFunction.shtyp       = BuiltInFunction("shtyp")
+BuiltInFunction.shtyp_num   = BuiltInFunction("shtyp_num")
+# BuiltInFunction.clear       = BuiltInFunction("clear")
+BuiltInFunction.eshte_num   = BuiltInFunction("eshte_num")
+BuiltInFunction.eshte_tekst   = BuiltInFunction("eshte_tekst")
+BuiltInFunction.eshte_list     = BuiltInFunction("eshte_list")
+BuiltInFunction.eshte_fun = BuiltInFunction("eshte_fun")
+BuiltInFunction.shto      = BuiltInFunction("shto")
+#TODO add function to remove and first and last items of array
+BuiltInFunction.fshij         = BuiltInFunction("fshij")
+BuiltInFunction.zgjat      = BuiltInFunction("zgjat")

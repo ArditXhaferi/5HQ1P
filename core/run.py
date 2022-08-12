@@ -4,14 +4,27 @@ from core.lexerController import Lexer
 from core.contextController import Context
 from core.symbolTable import SymbolTable
 from core.numberController import Number
+from core.interpreterController import BuiltInFunction
 import const.constants
 
 import pprint
 
 global_symbol_table = SymbolTable()
-global_symbol_table.set(const.constants.TRUE, Number(1))
-global_symbol_table.set(const.constants.FALSE, Number(0))
-
+global_symbol_table.set(const.constants.NULL, Number.null)
+global_symbol_table.set(const.constants.TRUE, Number.true)
+global_symbol_table.set(const.constants.FALSE, Number.false)
+global_symbol_table.set("MATH_PI", Number.math_PI)
+global_symbol_table.set("printo", BuiltInFunction.printo)
+global_symbol_table.set("shtyp", BuiltInFunction.shtyp)
+global_symbol_table.set("shtyp_num", BuiltInFunction.shtyp_num)
+# global_symbol_table.set("pastro", BuiltInFunction.clear)
+global_symbol_table.set("eshte_num", BuiltInFunction.eshte_num)
+global_symbol_table.set("eshte_tekst", BuiltInFunction.eshte_tekst)
+global_symbol_table.set("eshte_list", BuiltInFunction.eshte_list)
+global_symbol_table.set("eshte_fun", BuiltInFunction.eshte_fun)
+global_symbol_table.set("shto", BuiltInFunction.shto)
+global_symbol_table.set("fshij", BuiltInFunction.fshij)
+global_symbol_table.set("zgjat", BuiltInFunction.zgjat)
 def run(fn, text):
 
     #Generate Tokens

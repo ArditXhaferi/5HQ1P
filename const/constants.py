@@ -6,3 +6,4 @@ LETTERS_DIGITS = LETTERS + DIGITS
 
 TRUE = "Bon"
 FALSE = "Sbon"
+NULL = "Kurgjo"
