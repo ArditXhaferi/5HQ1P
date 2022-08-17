@@ -114,21 +114,22 @@ class Interpreter:
 	def visit_IfNode(self, node, context):
 		res = RTResult()
 
-		for condition, expr in node.cases:
+		for condition, expr, should_return_null in node.cases:
 			condition_value = res.register(self.visit(condition, context))
 			if res.error: return res
 
 			if condition_value.is_true():
 				expr_value = res.register(self.visit(expr, context))
 				if res.error: return res
-				return res.success(expr_value)
+				return res.success(Number.null if should_return_null else expr_value)
 
 		if node.else_case:
-			else_value = res.register(self.visit(node.else_case, context))
+			expr, should_return_null = node.else_case
+			expr_value = res.register(self.visit(expr, context))
 			if res.error: return res
-			return res.success(else_value)
+			return res.success(Number.null if should_return_null else expr_value)
 
-		return res.success(None)
+		return res.success(Number.null)
 
 	def visit_ForNode(self, node, context):
 		res = RTResult()
@@ -161,6 +162,7 @@ class Interpreter:
 			if res.error: return res
 
 		return res.success(
+			Number.null if node.should_return_null else
 			List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
 		)
 
@@ -178,6 +180,7 @@ class Interpreter:
 			if res.error: return res
 
 		return res.success(
+			Number.null if node.should_return_null else
 			List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
 		)
 
@@ -187,7 +190,7 @@ class Interpreter:
 		func_name = node.var_name_tok.value if node.var_name_tok else None
 		body_node = node.body_node
 		arg_names = [arg_name.value for arg_name in node.arg_name_toks]
-		func_value = Function(func_name, body_node, arg_names).set_context(context).set_pos(node.pos_start, node.pos_end)
+		func_value = Function(func_name, body_node, arg_names, node.should_return_null).set_context(context).set_pos(node.pos_start, node.pos_end)
 		
 		if node.var_name_tok:
 			context.symbol_table.set(func_name, func_value)
@@ -224,31 +227,32 @@ class Interpreter:
 		)
 
 class Function(BaseFunction):
-  def __init__(self, name, body_node, arg_names):
-    super().__init__(name)
-    self.body_node = body_node
-    self.arg_names = arg_names
+	def __init__(self, name, body_node, arg_names, should_return_null):
+		super().__init__(name)
+		self.body_node = body_node
+		self.arg_names = arg_names
+		self.should_return_null = should_return_null
 
-  def execute(self, args):
-    res = RTResult()
-    interpreter = Interpreter()
-    exec_ctx = self.generate_new_context()
+	def execute(self, args):
+		res = RTResult()
+		interpreter = Interpreter()
+		exec_ctx = self.generate_new_context()
 
-    res.register(self.check_and_populate_args(self.arg_names, args, exec_ctx))
-    if res.error: return res
+		res.register(self.check_and_populate_args(self.arg_names, args, exec_ctx))
+		if res.error: return res
 
-    value = res.register(interpreter.visit(self.body_node, exec_ctx))
-    if res.error: return res
-    return res.success(value)
+		value = res.register(interpreter.visit(self.body_node, exec_ctx))
+		if res.error: return res
+		return res.success(value)
 
-  def copy(self):
-    copy = Function(self.name, self.body_node, self.arg_names)
-    copy.set_context(self.context)
-    copy.set_pos(self.pos_start, self.pos_end)
-    return copy
+	def copy(self):
+		copy = Function(self.name, self.body_node, self.arg_names, self.should_return_null)
+		copy.set_context(self.context)
+		copy.set_pos(self.pos_start, self.pos_end)
+		return copy
 
-  def __repr__(self):
-    return f"<funksioni {self.name}>"
+	def __repr__(self):
+		return f"<funksioni {self.name}>"
 
 
 

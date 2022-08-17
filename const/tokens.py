@@ -15,6 +15,7 @@ SS_VAR        = 'var'
 SS_AND        = 'edhe'
 SS_OR         = 'ose'
 SS_NOT        = 'jo'
+SS_NEWLINE    = 'NEWLINE'
 
 SSS_INT = "num"
 SSS_FLOAT = "dec"
@@ -24,6 +25,7 @@ SS_IF         = 'nese'
 SS_THEN       = 'tani'
 SS_ELIF       = 'tjeter'
 SS_ELSE       = 'perndryshe'
+SS_END        = 'fund'
 
 #Loops
 SS_FOR = "per"
@@ -63,5 +65,6 @@ KEYWORDS = [
     SS_TO,
     SS_STEP,
     SS_WHILE,
-    SS_FUN
+    SS_FUN,
+    SS_END
 ]
