@@ -43,6 +43,6 @@ class BaseFunction(Value):
   def check_and_populate_args(self, arg_names, args, exec_ctx):
     res = RTResult()
     res.register(self.check_args(arg_names, args))
-    if res.error: return res
+    if res.should_return(): return res
     self.populate_args(arg_names, args, exec_ctx)
     return res.success(None)

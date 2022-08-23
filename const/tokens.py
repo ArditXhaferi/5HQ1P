@@ -52,6 +52,11 @@ SS_STRING = 'STRING'
 SS_LSQUARE = "LSQUARE"
 SS_RSQUARE = "RSQUARE"
 
+#Breaks
+SS_RETURN = "kthe"
+SS_CONTINUE = "vazhdo"
+SS_BREAK = "kpute"
+
 KEYWORDS = [
     SS_VAR,
     SS_AND,
@@ -66,5 +71,8 @@ KEYWORDS = [
     SS_STEP,
     SS_WHILE,
     SS_FUN,
-    SS_END
+    SS_END,
+    SS_RETURN,
+    SS_CONTINUE,
+    SS_BREAK
 ]

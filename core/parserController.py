@@ -12,6 +12,9 @@ from nodes.funcDefNode import FuncDefNode
 from nodes.callNode import CallNode
 from nodes.stringNode import StringNode
 from nodes.listNode import ListNode
+from nodes.continueNode import ContinueNode
+from nodes.breakNode import BreakNode
+from nodes.returnNode import ReturnNode
 
 class ParseResult:
 	def __init__(self):
@@ -156,7 +159,7 @@ class Parser:
 						"Pritet 'fund'"
 					))
 			else:
-				expr = res.register(self.expr())
+				expr = res.register(self.statement())
 				if res.error: return res
 				else_case = (expr, False)
 
@@ -219,7 +222,7 @@ class Parser:
 				new_cases, else_case = all_cases
 				cases.extend(new_cases)
 		else:
-			expr = res.register(self.expr())
+			expr = res.register(self.statement())
 			if res.error: return res
 			cases.append((condition, expr, False))
 
@@ -312,7 +315,7 @@ class Parser:
 
 			return res.success(ForNode(var_name, start_value, end_value, step_value, body, True))
 		
-		body = res.register(self.expr())
+		body = res.register(self.statement())
 		if res.error: return res
 
 		return res.success(ForNode(var_name, start_value, end_value, step_value, body, False))
@@ -359,7 +362,7 @@ class Parser:
 
 			return res.success(WhileNode(condition, body, True))
 		
-		body = res.register(self.expr())
+		body = res.register(self.statement())
 		if res.error: return res
 
 		return res.success(WhileNode(condition, body, False))
@@ -442,7 +445,7 @@ class Parser:
 				var_name_tok,
 				arg_name_toks,
 				body,
-				False
+				True
 			))
 		
 		if self.current_tok.type != const.tokens.SS_NEWLINE:
@@ -470,7 +473,7 @@ class Parser:
 			var_name_tok,
 			arg_name_toks,
 			body,
-			True
+			False
 		))
 
 	def call(self):
@@ -630,7 +633,7 @@ class Parser:
 			res.register_advancement()
 			self.advance()
 
-		statement = res.register(self.expr())
+		statement = res.register(self.statement())
 		if res.error: return res
 		statements.append(statement)
 
@@ -658,6 +661,37 @@ class Parser:
 			pos_start,
 			self.current_tok.pos_end.copy()
 		))
+
+	def statement(self):
+		res = ParseResult()
+		pos_start = self.current_tok.pos_start.copy()
+
+		if self.current_tok.matches(const.tokens.SS_KEYWORD, const.tokens.SS_RETURN):
+			res.register_advancement()
+			self.advance()
+
+			expr = res.try_register(self.expr())
+			if not expr:
+				self.reverse(res.to_reverse_count)
+			return res.success(ReturnNode(expr, pos_start, self.current_tok.pos_start.copy()))
+		
+		if self.current_tok.matches(const.tokens.SS_KEYWORD, const.tokens.SS_CONTINUE):
+			res.register_advancement()
+			self.advance()
+			return res.success(ContinueNode(pos_start, self.current_tok.pos_start.copy()))
+			
+		if self.current_tok.matches(const.tokens.SS_KEYWORD, const.tokens.SS_BREAK):
+			res.register_advancement()
+			self.advance()
+			return res.success(BreakNode(pos_start, self.current_tok.pos_start.copy()))
+
+		expr = res.register(self.expr())
+		if res.error:
+			return res.failure(InvalidSyntaxError(
+				self.current_tok.pos_start, self.current_tok.pos_end,
+				f"Pritet '{const.tokens.SS_RETURN}', '{const.tokens.SS_CONTINUE}', '{const.tokens.SS_BREAK}', '{const.tokens.SS_VAR}', '{const.tokens.SS_IF}', '{const.tokens.SS_FOR}', '{const.tokens.SS_WHILE}', '{const.tokens.SS_FUN}', num, dec, identifikuesi, '+', '-', '(', '[' ose '{const.tokens.SS_NOT}'"
+			))
+		return res.success(expr)
 
 	def expr(self):
 		res = ParseResult()
