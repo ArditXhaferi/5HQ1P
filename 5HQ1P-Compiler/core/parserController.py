@@ -72,7 +72,7 @@ class Parser:
 		if not res.error and self.current_tok.type != const.tokens.SS_EOF:
 			return res.failure(InvalidSyntaxError(
 				self.current_tok.pos_start, self.current_tok.pos_end,
-				"Pritet '+', '-', '*', '/' ose '^'"
+				"Shenja nuk mund të shfaqet pas shenjave të mëparshme"
 			))
 		return res
 
@@ -649,7 +649,7 @@ class Parser:
 				more_statements = False
 			
 			if not more_statements: break
-			statement = res.try_register(self.expr())
+			statement = res.try_register(self.statement())
 			if not statement:
 				self.reverse(res.to_reverse_count)
 				more_statements = False

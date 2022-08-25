@@ -1,4 +1,4 @@
-from core.run import run
+from core.interpreterController import run
 
 class Core:
     def __init__(self):

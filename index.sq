@@ -1,0 +1,31 @@
+~ Example code of 5HQ1P
+
+printo("Pershendetje Bote!")
+
+funksion shto_ne(prefix) -> prefix + "në"
+
+funksion bashko(elementet, ndaresi)
+	var rezultati = ""
+	var gjatesia = sa(elementet)
+
+	per i = 0 deri gjatesia tani
+		var rezultati = rezultati + (elementet <= i)
+		nese i != gjatesia - 1 tani var rezultati = rezultati + ndaresi
+	fund
+
+	kthe rezultati
+fund
+
+funksion harto(elementet, func)
+	var elementet_reja = []
+
+	per i = 0 deri sa(elementet) tani
+		shto(elementet_reja, func(elementet <= i))
+	fund
+
+	kthe elementet_reja
+fund
+
+per i = 0 deri 5 tani
+	printo(bashko(harto(["bo", "sbo"], shto_ne), ", "))
+fund
