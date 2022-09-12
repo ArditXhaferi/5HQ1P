@@ -1,0 +1,20 @@
+~ Function for nth Fibonacci number in 5HQ1P
+
+funksion fibonacci(n)
+	nese n < 0 tani
+		printo("Gabim vlere: " + tekst(n))
+        kpute
+    
+	tjeter n == 0 tani
+		kthe 0
+    
+	tjeter n == 1 ose n == 2 tani
+		kthe 1
+
+	perndryshe
+		kthe fibonacci(n - 1) + fibonacci(n - 2)
+  
+    fund
+fund
+
+printo(fibonacci(num(shtyp())))

@@ -580,7 +580,7 @@ class Parser:
 		))
 
 	def power(self):
-		return self.bin_op(self.call, (const.tokens.SS_POW, ), self.factor)
+		return self.bin_op(self.call, (const.tokens.SS_POW, const.tokens.SS_MOD), self.factor)
 
 	def factor(self):
 		res = ParseResult()

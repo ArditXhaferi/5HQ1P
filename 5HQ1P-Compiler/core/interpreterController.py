@@ -79,6 +79,8 @@ class Interpreter:
 			result, error = left.dived_by(right)
 		elif node.op_tok.type == const.tokens.SS_POW:
 			result, error = left.powed_by(right)
+		elif node.op_tok.type == const.tokens.SS_MOD:
+			result, error = left.modulo_by(right)
 		elif node.op_tok.type == const.tokens.SS_EE:
 			result, error = left.get_comparison_eq(right)
 		elif node.op_tok.type == const.tokens.SS_NE:
@@ -352,6 +354,34 @@ class BuiltInFunction(BaseFunction):
     return RTResult().success(Number(number))
   execute_shtyp_num.arg_names = []
 
+  def execute_num(self, exec_ctx):
+    if(exec_ctx.symbol_table.get('value').value.lstrip("-").isnumeric()):
+      number = int(exec_ctx.symbol_table.get('value').value)
+      return RTResult().success(Number(number))
+    else:
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        f"'{exec_ctx.symbol_table.get('value').value}' duhet te jete nje numer.",
+        exec_ctx
+      ))
+  execute_num.arg_names = ['value']
+
+  def execute_tekst(self, exec_ctx):
+    if(isinstance(exec_ctx.symbol_table.get("value"), Number)):
+      text = str(exec_ctx.symbol_table.get('value').value)
+      return RTResult().success(String(text))
+    elif(isinstance(exec_ctx.symbol_table.get("value"), List)):
+      text = str(exec_ctx.symbol_table.get('value'))
+      return RTResult().success(String(text))
+    else:
+      return RTResult().failure(RTError(
+        self.pos_start, self.pos_end,
+        f"'{exec_ctx.symbol_table.get('value')}' duhet te jete numer ose list.",
+        exec_ctx
+      ))
+
+  execute_tekst.arg_names = ['value']
+
 #   def execute_clear(self, exec_ctx):
 #     os.system('cls' if os.name == 'nt' else 'cls') 
 #     return RTResult().success(Number.null)
@@ -494,6 +524,8 @@ class BuiltInFunction(BaseFunction):
 BuiltInFunction.printo      = BuiltInFunction("printo")
 BuiltInFunction.shtyp       = BuiltInFunction("shtyp")
 BuiltInFunction.shtyp_num   = BuiltInFunction("shtyp_num")
+BuiltInFunction.num   = BuiltInFunction("num")
+BuiltInFunction.tekst   = BuiltInFunction("tekst")
 # BuiltInFunction.clear       = BuiltInFunction("clear")
 BuiltInFunction.eshte_num   = BuiltInFunction("eshte_num")
 BuiltInFunction.eshte_tekst   = BuiltInFunction("eshte_tekst")
@@ -514,6 +546,8 @@ global_symbol_table.set("MATH_PI", Number.math_PI)
 global_symbol_table.set("printo", BuiltInFunction.printo)
 global_symbol_table.set("shtyp", BuiltInFunction.shtyp)
 global_symbol_table.set("shtyp_num", BuiltInFunction.shtyp_num)
+global_symbol_table.set("num", BuiltInFunction.num)
+global_symbol_table.set("tekst", BuiltInFunction.tekst)
 # global_symbol_table.set("pastro", BuiltInFunction.clear)
 global_symbol_table.set("eshte_num", BuiltInFunction.eshte_num)
 global_symbol_table.set("eshte_tekst", BuiltInFunction.eshte_tekst)

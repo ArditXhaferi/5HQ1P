@@ -48,6 +48,9 @@ class Lexer:
             elif self.current_char == '^':
                 tokens.append(Token(const.tokens.SS_POW, pos_start=self.pos))
                 self.advance()
+            elif self.current_char == '%':
+                tokens.append(Token(const.tokens.SS_MOD, pos_start=self.pos))
+                self.advance()
             elif self.current_char == '(':
                 tokens.append(Token(const.tokens.SS_LPAREN, pos_start=self.pos))
                 self.advance()

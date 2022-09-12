@@ -44,6 +44,18 @@ class Number(Value):
 		else:
 			return None, Value.illegal_operation(self, other)
 
+	def modulo_by(self, other):
+		if isinstance(other, Number):
+			if other.value == 0:
+				return None, RTError(
+					other.pos_start, other.pos_end,
+					'Pjestimi me zero?',
+					self.context
+				)
+			return Number(self.value - other.value * (self.value // other.value)).set_context(self.context), None
+		else:
+			return None, Value.illegal_operation(self, other)
+
 	def get_comparison_eq(self, other):
 		if isinstance(other, Number):
 			return Number(int(self.value == other.value)).set_context(self.context), None

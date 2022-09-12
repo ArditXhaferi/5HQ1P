@@ -1,0 +1,18 @@
+~ Example code of 5HQ1P
+
+funksion numri_maksimal(elementet)
+	var gjatesia = sa(elementet)
+    var numri_fundit = elementet <= 0
+    
+    per i = 0 deri gjatesia tani
+        var elementi = elementet <= i
+        
+        nese elementi > numri_fundit tani var numri_fundit = elementi
+    fund
+
+    kthe numri_fundit
+fund
+
+var numri = numri_maksimal([-22, 0, 8, 3, 95, 33, 53])
+
+printo(numri)

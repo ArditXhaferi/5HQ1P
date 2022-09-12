@@ -1,31 +1,20 @@
-~ Example code of 5HQ1P
+~ Function for Fizzbuzz(kafesheqer) in 5HQ1P
 
 printo("Pershendetje Bote!")
 
-funksion shto_ne(prefix) -> prefix + "në"
+per fizzbuzz = 0 deri 51 tani
+    nese fizzbuzz % 3 == 0 edhe fizzbuzz % 5 == 0 tani
+        printo("fizzbuzz")
+        vazhdo
 
-funksion bashko(elementet, ndaresi)
-	var rezultati = ""
-	var gjatesia = sa(elementet)
+    tjeter fizzbuzz % 3 == 0 tani
+        printo("fizz")
+        vazhdo
 
-	per i = 0 deri gjatesia tani
-		var rezultati = rezultati + (elementet <= i)
-		nese i != gjatesia - 1 tani var rezultati = rezultati + ndaresi
-	fund
+    tjeter fizzbuzz % 5 == 0 tani
+        printo("buzz")
+        vazhdo
+    fund
 
-	kthe rezultati
-fund
-
-funksion harto(elementet, func)
-	var elementet_reja = []
-
-	per i = 0 deri sa(elementet) tani
-		shto(elementet_reja, func(elementet <= i))
-	fund
-
-	kthe elementet_reja
-fund
-
-per i = 0 deri 5 tani
-	printo(bashko(harto(["bo", "sbo"], shto_ne), ", "))
+    printo(fizzbuzz)
 fund
