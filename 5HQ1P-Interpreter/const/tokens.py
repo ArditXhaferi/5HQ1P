@@ -24,7 +24,7 @@ SSS_FLOAT = "dec"
 #If statement
 SS_IF         = 'nese'
 SS_THEN       = 'tani'
-SS_ELIF       = 'tjeter'
+SS_ELIF       = 'ose nese'
 SS_ELSE       = 'perndryshe'
 SS_END        = 'fund'
 
